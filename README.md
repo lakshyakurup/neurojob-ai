@@ -60,4 +60,4 @@ Baux AI — an AI-powered resume builder using Next.js 14, Gemini API & Supabase
 ---
 [![](https://komarev.com/ghpvc/?username=lakshyakurup&icon=0&color=0)](https://visitcount.itsvg.in)
 
-<!-- Proudly created with GPRM ( https://gprm.itsvg.in ) -->
+<!-- Proudly created with GPRM ( https://gprm.itsvg.in ) --->
