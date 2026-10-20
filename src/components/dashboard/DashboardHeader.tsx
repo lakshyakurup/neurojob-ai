@@ -1,0 +1,3 @@
+import { CalendarDays, Plus } from 'lucide-react';
+
+export default function DashboardHeader() { return <div className="header-row"><div><p className="eyebrow">Monday, October 18, 2026</p><h1 className="page-title">Your next move,<br />made visible.</h1><p className="page-lead">A calm, evidence-led workspace for turning your experience into opportunities worth pursuing.</p></div><div style={{ display: 'flex', gap: 9 }}><button className="secondary-button"><CalendarDays size={15} /> Weekly review</button><button className="primary-button"><Plus size={15} /> New analysis</button></div></div>; }

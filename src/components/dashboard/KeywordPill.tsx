@@ -1,0 +1,1 @@
+export default function KeywordPill({ children, missing = false }: { children: React.ReactNode; missing?: boolean }) { return <span className={`keyword ${missing ? 'missing' : ''}`}>{children}</span>; }

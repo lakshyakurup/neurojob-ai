@@ -1,0 +1,12 @@
+'use client';
+import { useState } from 'react';
+import { FileText, LoaderCircle, Sparkles, Target } from 'lucide-react';
+import type { AnalysisResponse } from '../../types';
+
+export default function AnalysisWorkspace({ onResult }: { onResult: (result: AnalysisResponse) => void }) {
+  const [resume, setResume] = useState('Product designer with 6+ years building B2B SaaS products. Led discovery, prototyping, and launch for a workflow platform used by 40k teams. Partnered with engineering and growth to improve activation by 31%.');
+  const [job, setJob] = useState('We are looking for a Senior Product Designer to own the workflow experience, turn customer insight into product strategy, and partner closely with engineering and growth. Experience with experimentation and complex systems is a plus.');
+  const [loading, setLoading] = useState(false);
+  async function analyze() { setLoading(true); try { const response = await fetch('/api/analyze', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ resumeText: resume, jobDescription: job }) }); const payload = await response.json(); if (payload.data) onResult(payload.data); } finally { setLoading(false); } }
+  return <section className="workspace-grid"><div className="panel input-panel"><div className="panel-head"><div><h2 className="panel-title"><FileText size={16} /> Your story</h2><p className="panel-subtitle">Paste a resume or a profile draft</p></div><span className="stat-foot">{resume.length} chars</span></div><textarea value={resume} onChange={(event) => setResume(event.target.value)} /></div><div className="panel input-panel"><div className="panel-head"><div><h2 className="panel-title"><Target size={16} /> Target role</h2><p className="panel-subtitle">Give the intelligence engine a destination</p></div><span className="stat-foot">{job.length} chars</span></div><textarea value={job} onChange={(event) => setJob(event.target.value)} /></div><div className="analyze-bar"><button className="primary-button" onClick={analyze} disabled={loading}>{loading ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}{loading ? 'Reading your signal...' : 'Run strategic analysis'}</button></div></section>;
+}

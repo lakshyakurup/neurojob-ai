@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Navbar from '@/components/ui/Navbar';
+import Navbar from '../../components/ui/Navbar';
 import { Upload, FileCheck, BrainCircuit } from 'lucide-react';
 
 export default function Dashboard() {

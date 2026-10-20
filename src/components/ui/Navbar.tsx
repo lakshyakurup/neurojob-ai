@@ -1,19 +1,32 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, FileText, LayoutDashboard } from 'lucide-react';
+import { Bell, ChevronDown } from 'lucide-react';
+import {
+  SignInButton,
+  SignUpButton,
+  Show,
+  UserButton,
+} from '@clerk/nextjs';
 
 export default function Navbar() {
   return (
-    <nav className="w-full border-b border-slate-800 bg-slate-950/50 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-2 font-bold text-xl text-indigo-400">
-        <Sparkles className="w-6 h-6 text-indigo-500" />
-        <span>NeuroJob AI</span>
+    <header className="topbar">
+      <p className="crumb"><strong>Workspace</strong> <span>/</span> Overview</p>
+      <div className="top-actions">
+        <button className="icon-button" aria-label="Notifications"><Bell size={16} /></button>
+        <Show when="signed-out">
+          <SignInButton mode="modal">
+            <button className="secondary-button">Sign in</button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <button className="primary-button">Create account</button>
+          </SignUpButton>
+        </Show>
+        <Show when="signed-in">
+          <UserButton />
+        </Show>
+        <ChevronDown size={14} color="#50615b" />
       </div>
-      <div className="flex items-center gap-6 text-sm text-slate-300">
-        <Link href="/" className="hover:text-white transition-colors">Home</Link>
-        <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
-        <Link href="https://github.com/lakshyakurup/neurojob-ai" target="_blank" className="hover:text-white transition-colors">GitHub</Link>
-      </div>
-    </nav>
+    </header>
   );
 }
