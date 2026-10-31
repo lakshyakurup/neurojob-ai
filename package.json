@@ -1,7 +1,7 @@
 {
   "name": "@lakshyakurup/neurojob-ai",
-  "version": "1.2.1",
-  "private": false,
+  "version": "1.2.2",
+  "private": true,
   "description": "AI-powered career intelligence platform — resume fit scoring, cover letters, interview prep, PDF parsing & rewrite agent",
   "scripts": {
     "dev": "next dev",
@@ -31,24 +31,9 @@
     "@types/react-dom": "^18.3.5",
     "typescript": "^5.8.2"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lakshyakurup/neurojob-ai.git"
-  },
-  "keywords": [
-    "ai",
-    "career",
-    "resume",
-    "gemini",
-    "nextjs",
-    "hackathon",
-    "job-search",
-    "ats",
-    "supabase",
-    "pdf"
-  ],
   "license": "MIT"
 }
