@@ -1,30 +1,48 @@
 {
+  "name": "@lakshyakurup/neurojob-ai",
+  "version": "1.1.0",
+  "private": false,
+  "description": "AI-powered career intelligence platform — resume fit scoring, cover letters, interview prep",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.9.17",
-    "@google/genai": "^2.16.0",
+    "@clerk/nextjs": "^6.12.0",
+    "@google/genai": "^1.0.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^13.0.0",
-    "lucide-react": "^1.30.0",
-    "next": "^15.5.28",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^3.6.0"
+    "framer-motion": "^11.18.0",
+    "lucide-react": "^0.475.0",
+    "next": "^15.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.0.0"
   },
   "devDependencies": {
-    "@types/react": "19.3.0",
-    "typescript": "5.8.2"
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.8.2"
   },
-  "name": "@lakshyakurup/neurojob-ai",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lakshyakurup/neurojob-ai.git"
-  }
+  },
+  "keywords": [
+    "ai",
+    "career",
+    "resume",
+    "gemini",
+    "nextjs",
+    "hackathon",
+    "job-search",
+    "ats"
+  ],
+  "license": "MIT"
 }
