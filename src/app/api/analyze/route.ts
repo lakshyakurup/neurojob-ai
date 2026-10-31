@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { analyzeResumeWithGemini } from '../../../lib/gemini';
+import { saveAnalysis } from '../../../lib/supabase/analyses';
 import type { AnalysisRequest } from '../../../types';
 
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
-
-    // Optional: require auth in production
-    // if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = (await request.json()) as AnalysisRequest;
     const { resumeText, jobDescription, jobTitle, company } = body;
@@ -34,11 +32,22 @@ export async function POST(request: Request) {
       company
     );
 
-    // In a full version we would persist to Supabase here using userId
+    // Persist when the user is signed in and Supabase is configured
+    let savedId: string | null = null;
+    if (userId && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const saved = await saveAnalysis(userId, result, resumeText, jobDescription);
+      savedId = saved?.id ?? null;
+    }
+
     return NextResponse.json({
       success: true,
       data: result,
-      meta: { userId: userId ?? null, model: 'gemini-2.5-flash' },
+      meta: {
+        userId: userId ?? null,
+        savedId,
+        model: 'gemini-2.5-flash',
+        persisted: Boolean(savedId),
+      },
     });
   } catch (error) {
     console.error('[/api/analyze]', error);
