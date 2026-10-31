@@ -1,5 +1,15 @@
+'use client';
+
 import Link from 'next/link';
-import { BarChart3, BriefcaseBusiness, FileText, LayoutDashboard, Settings2, Sparkles } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import {
+  BarChart3,
+  BriefcaseBusiness,
+  FileText,
+  LayoutDashboard,
+  Settings2,
+  Sparkles,
+} from 'lucide-react';
 
 const items = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -10,11 +20,42 @@ const items = [
 ];
 
 export default function Sidebar() {
-  return <aside className="sidebar">
-    <Link href="/" className="brand"><span className="brand-mark"><Sparkles size={16} /></span> NeuroJob AI</Link>
-    <p className="nav-label">Command center</p>
-    <nav className="nav-list">{items.map(({ label, href, icon: Icon }) => <Link className={`nav-item ${href === '/dashboard' ? 'active' : ''}`} href={href} key={href}><Icon />{label}</Link>)}</nav>
-    <div className="sidebar-spacer" />
-    <div className="upgrade-card"><strong>Unlock your edge</strong><p>Get unlimited role simulations and portfolio intelligence.</p><a href="/settings">View plan -&gt;</a></div>
-  </aside>;
+  const pathname = usePathname();
+
+  return (
+    <aside className="sidebar">
+      <Link href="/" className="brand">
+        <span className="brand-mark">
+          <Sparkles size={16} />
+        </span>
+        NeuroJob AI
+      </Link>
+
+      <p className="nav-label">Command center</p>
+
+      <nav className="nav-list">
+        {items.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href || (href !== '/' && pathname.startsWith(href));
+          return (
+            <Link
+              className={`nav-item ${active ? 'active' : ''}`}
+              href={href}
+              key={href}
+            >
+              <Icon />
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="sidebar-spacer" />
+
+      <div className="upgrade-card">
+        <strong>Unlock your edge</strong>
+        <p>Get unlimited role simulations and portfolio intelligence.</p>
+        <a href="/settings">View plan -&gt;</a>
+      </div>
+    </aside>
+  );
 }
