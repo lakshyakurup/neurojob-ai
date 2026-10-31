@@ -1,40 +1,30 @@
 # 🚀 NeuroJob AI
 
 > **Stop applying blindly. Start applying with intelligence.**  
-> An AI-powered career command center that scores resume fit, generates tailored cover letters, predicts interview questions, and surfaces the exact gaps that matter — powered by Google Gemini.
+> An AI-powered career command center that scores resume fit, generates tailored cover letters, predicts interview questions, parses PDF resumes, rewrites your story for the target role, and persists your history — powered by Google Gemini + Supabase.
 
 ![Status](https://img.shields.io/badge/status-hackathon%20ready-39c985)
 ![Stack](https://img.shields.io/badge/Next.js%2015-black?logo=next.js)
 ![AI](https://img.shields.io/badge/Gemini%202.5-flash-4285F4?logo=google)
 ![Auth](https://img.shields.io/badge/Clerk-auth-6C47FF)
+![DB](https://img.shields.io/badge/Supabase-persistence-3ECF8E?logo=supabase)
 
 ---
 
-## 🔥 Why this exists
-
-Most job seekers spray and pray. NeuroJob turns every application into a strategic decision:
-
-- Calibrated **match score** (not a random 0-100)
-- Precise **ATS keyword gaps**
-- Ready-to-send **cover letter**
-- High-signal **interview questions** with answering tips
-- Actionable **resume improvements**
-
-Built to win international hackathons and real careers.
-
----
-
-## ✨ Core Features
+## ✨ Features
 
 | Feature | Description |
 |--------|-------------|
-| **Strategic Analysis** | Deep Gemini-powered comparison of resume ↔ job description |
-| **Match Score + Insights** | Realistic scoring + strengths / weaknesses breakdown |
-| **ATS Keyword Radar** | Missing high-impact keywords that kill applications |
+| **Strategic Analysis** | Deep Gemini comparison of resume ↔ job description |
+| **Match Score + Insights** | Realistic scoring + strengths / weaknesses |
+| **ATS Keyword Radar** | Missing high-impact keywords |
 | **One-click Cover Letter** | Personalized, professional, copy-ready |
 | **Interview Predictor** | Technical + behavioral + role-specific questions with tips |
-| **Application Pipeline** | Track roles and link them to analyses |
-| **Resume Lab** | Version management foundation (PDF upload coming) |
+| **PDF Resume Upload** | Drop a PDF → automatic text extraction via `pdf-parse` |
+| **Resume Rewrite Agent** | Gemini rewrites your resume using gaps + improvements (truthful, no invention) |
+| **Supabase Persistence** | Save analyses per Clerk user; history API ready |
+| **Application Pipeline** | Track roles linked to analyses |
+| **Resume Lab** | Version management foundation |
 | **Auth-ready** | Clerk authentication wired end-to-end |
 
 ---
@@ -42,10 +32,10 @@ Built to win international hackathons and real careers.
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15 (App Router) + TypeScript + custom design system
-- **AI Layer**: Google Gemini 2.5 Flash (structured JSON output)
+- **AI Layer**: Google Gemini 2.5 Flash (structured JSON)
 - **Auth**: Clerk
-- **Styling**: Hand-crafted CSS design system (mint / deep green aesthetic)
-- **Icons**: Lucide React
+- **Database**: Supabase (Postgres)
+- **PDF**: `pdf-parse` (server-side)
 - **Deploy target**: Vercel
 
 ---
@@ -55,96 +45,95 @@ Built to win international hackathons and real careers.
 ```
 neurojob-ai/
 ├── src/
-│   ├── app/                    # App Router pages + API routes
-│   │   ├── api/analyze/        # Structured Gemini analysis endpoint
-│   │   ├── dashboard/          # Main command center
-│   │   ├── applications/       # Pipeline tracker
-│   │   └── library/            # Resume versions
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── analyze/          # Gemini analysis + optional Supabase save
+│   │   │   ├── parse-resume/     # PDF → text
+│   │   │   ├── rewrite-resume/   # Resume rewrite agent
+│   │   │   └── history/          # User analysis history
+│   │   ├── dashboard/            # Command center
+│   │   ├── applications/
+│   │   ├── library/
+│   │   ├── analytics/
+│   │   └── settings/
 │   ├── components/
-│   │   ├── app/                # Shell, Sidebar, MobileNav
-│   │   ├── dashboard/          # ScoreRing, AnalysisPanel, Workspace...
-│   │   └── ui/                 # Navbar etc.
-│   ├── lib/gemini.ts           # AI client + robust prompt + JSON parsing
-│   └── types/                  # Shared TypeScript contracts
-├── .github/workflows/          # CI + package publishing
+│   ├── lib/
+│   │   ├── gemini.ts             # Analyze + Rewrite agents
+│   │   └── supabase/             # clients + analyses helpers
+│   └── types/
+├── supabase/schema.sql           # Run in Supabase SQL editor
 └── package.json
 ```
 
 **Data flow**
-1. User pastes resume + JD in AnalysisWorkspace
-2. Client → `POST /api/analyze`
-3. Server validates → Gemini (structured JSON mode)
-4. Normalized `AnalysisResponse` returned
-5. Dashboard updates score, keywords, cover letter, interview prep in real time
+1. Upload PDF or paste resume → `/api/parse-resume` (optional)
+2. Run analysis → `/api/analyze` → Gemini → structured result
+3. If signed in + Supabase configured → row saved to `analyses`
+4. Rewrite agent → `/api/rewrite-resume` → improved resume + change log
 
 ---
 
 ## ⚡ Quick Start
 
 ```bash
-# 1. Clone
 git clone https://github.com/lakshyakurup/neurojob-ai.git
 cd neurojob-ai
-
-# 2. Install
 npm install
 
-# 3. Environment
 cp .env.example .env.local
-# Add:
-# GEMINI_API_KEY=your_key
-# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
-# CLERK_SECRET_KEY=...
+# Fill in:
+# GEMINI_API_KEY=
+# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+# CLERK_SECRET_KEY=
+# NEXT_PUBLIC_SUPABASE_URL=
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# SUPABASE_SERVICE_ROLE_KEY=
 
-# 4. Run
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+### Supabase setup (5 minutes)
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Open **SQL Editor** → paste and run `supabase/schema.sql`
+3. Copy Project URL + anon key + service_role key into `.env.local`
+4. Restart `npm run dev`
+
+Without Supabase the app still works — analyses just won’t be persisted.
 
 ---
 
-## 🧠 AI Design Decisions
+## 🧠 AI Agents
 
-- Forced **JSON response** via `responseMimeType: 'application/json'`
-- Temperature 0.4 for consistent, calibrated scores
-- Strict field normalization + length caps to prevent hallucinated bloat
-- Prompt engineered for "elite career coach" persona used by FAANG candidates
+### Analysis Agent
+- Structured JSON only
+- Calibrated match score, keywords, cover letter, 6 interview questions, ATS tips, improvements
+
+### Rewrite Agent
+- Takes original resume + JD + missing keywords + recommended improvements
+- Produces a truthful rewrite (no invented experience)
+- Returns change summary + keywords successfully woven in
 
 ---
 
-## 🗺️ Roadmap (Hackathon → Production)
+## 🗺️ Roadmap
 
-- [x] Structured Gemini analysis pipeline
+- [x] Structured Gemini analysis
 - [x] Full dashboard with live results
 - [x] Cover letter + interview tabs
-- [x] Applications & Library pages
-- [ ] Supabase persistence (history + multi-user)
-- [ ] PDF resume upload + parsing
-- [ ] Real-time collaboration / shared reports
-- [ ] Job board connectors (LinkedIn / Wellfound)
-- [ ] Agent mode: multi-step critique + rewrite
-
----
-
-## 🏆 Built for Hackathons
-
-This repo is intentionally high-signal:
-
-- Clean architecture
-- Beautiful, cohesive design system
-- Real AI (not mocked)
-- Type-safe end-to-end
-- Auth already integrated
-- Easy to demo in < 3 minutes
-
-Perfect for international hackathons focused on AI, productivity, or career tech.
+- [x] PDF resume parsing
+- [x] Resume rewrite agent
+- [x] Supabase schema + save path
+- [ ] Live history feed from `/api/history`
+- [ ] Full applications CRUD
+- [ ] Multi-version resume library with PDF storage
+- [ ] Job board connectors
 
 ---
 
 ## 📄 License
 
-MIT — use it, fork it, ship it.
+MIT
 
 ---
 
