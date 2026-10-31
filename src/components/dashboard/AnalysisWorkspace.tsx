@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FileText, LoaderCircle, Sparkles, Target, Upload } from 'lucide-react';
 import type { AnalysisResponse } from '../../types';
 
@@ -8,15 +8,21 @@ interface Props {
   onResult: (result: AnalysisResponse) => void;
   onStart?: () => void;
   onResumeTextChange?: (text: string) => void;
+  onJobDescriptionChange?: (text: string) => void;
 }
 
-export default function AnalysisWorkspace({ onResult, onStart, onResumeTextChange }: Props) {
-  const [resume, setResume] = useState(
-    `Product designer with 6+ years building B2B SaaS products. Led discovery, prototyping, and launch for a workflow platform used by 40k teams. Partnered with engineering and growth to improve activation by 31%. Designed end-to-end experiences across web and mobile. Mentored junior designers and ran design critiques.`
-  );
-  const [job, setJob] = useState(
-    `We are looking for a Senior Product Designer to own the workflow experience, turn customer insight into product strategy, and partner closely with engineering and growth. Experience with experimentation, complex systems, and data-informed design is a strong plus. You will lead discovery, ship high-impact features, and help shape the product vision.`
-  );
+const DEFAULT_RESUME = `Product designer with 6+ years building B2B SaaS products. Led discovery, prototyping, and launch for a workflow platform used by 40k teams. Partnered with engineering and growth to improve activation by 31%. Designed end-to-end experiences across web and mobile. Mentored junior designers and ran design critiques.`;
+
+const DEFAULT_JD = `We are looking for a Senior Product Designer to own the workflow experience, turn customer insight into product strategy, and partner closely with engineering and growth. Experience with experimentation, complex systems, and data-informed design is a strong plus. You will lead discovery, ship high-impact features, and help shape the product vision.`;
+
+export default function AnalysisWorkspace({
+  onResult,
+  onStart,
+  onResumeTextChange,
+  onJobDescriptionChange,
+}: Props) {
+  const [resume, setResume] = useState(DEFAULT_RESUME);
+  const [job, setJob] = useState(DEFAULT_JD);
   const [jobTitle, setJobTitle] = useState('Senior Product Designer');
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,9 +31,21 @@ export default function AnalysisWorkspace({ onResult, onStart, onResumeTextChang
   const [parseInfo, setParseInfo] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Seed parent state once
+  useEffect(() => {
+    onResumeTextChange?.(DEFAULT_RESUME);
+    onJobDescriptionChange?.(DEFAULT_JD);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function updateResume(text: string) {
     setResume(text);
     onResumeTextChange?.(text);
+  }
+
+  function updateJob(text: string) {
+    setJob(text);
+    onJobDescriptionChange?.(text);
   }
 
   async function handlePdfUpload(file: File) {
@@ -200,7 +218,7 @@ export default function AnalysisWorkspace({ onResult, onStart, onResumeTextChang
         </div>
         <textarea
           value={job}
-          onChange={(e) => setJob(e.target.value)}
+          onChange={(e) => updateJob(e.target.value)}
           placeholder="Paste the full job description here…"
         />
       </div>
