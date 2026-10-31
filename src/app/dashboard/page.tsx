@@ -9,6 +9,7 @@ import {
   LoaderCircle,
   Sparkles,
   Target,
+  Wand2,
   Zap,
 } from 'lucide-react';
 import AppShell from '../../components/app/AppShell';
@@ -17,18 +18,69 @@ import AnalysisPanel from '../../components/dashboard/AnalysisPanel';
 import AnalysisWorkspace from '../../components/dashboard/AnalysisWorkspace';
 import ActivityFeed from '../../components/dashboard/ActivityFeed';
 import StatCard from '../../components/dashboard/StatCard';
-import type { AnalysisResponse } from '../../types';
+import type { AnalysisResponse, RewriteResponse } from '../../types';
+
+type Tab = 'overview' | 'cover' | 'interview' | 'improve' | 'rewrite';
 
 export default function DashboardPage() {
   const [result, setResult] = useState<AnalysisResponse | undefined>();
-  const [activeTab, setActiveTab] = useState<'overview' | 'cover' | 'interview' | 'improve'>('overview');
+  const [resumeText, setResumeText] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isRewriting, setIsRewriting] = useState(false);
+  const [rewrite, setRewrite] = useState<RewriteResponse | null>(null);
+  const [rewriteError, setRewriteError] = useState<string | null>(null);
 
   function handleResult(data: AnalysisResponse) {
     setResult(data);
     setActiveTab('overview');
     setIsAnalyzing(false);
+    setRewrite(null);
   }
+
+  async function runRewrite() {
+    if (!result || !resumeText.trim()) {
+      setRewriteError('Run an analysis first and keep the resume text available.');
+      return;
+    }
+
+    setIsRewriting(true);
+    setRewriteError(null);
+
+    try {
+      const res = await fetch('/api/rewrite-resume', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          resumeText,
+          jobDescription: jobDescription || 'Target role from analysis',
+          missingKeywords: result.missingKeywords,
+          recommendedImprovements: result.recommendedImprovements,
+          jobTitle: result.jobTitle,
+          company: result.company,
+        }),
+      });
+
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Rewrite failed');
+
+      setRewrite(payload.data);
+      setActiveTab('rewrite');
+    } catch (err) {
+      setRewriteError(err instanceof Error ? err.message : 'Rewrite failed');
+    } finally {
+      setIsRewriting(false);
+    }
+  }
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'overview', label: 'Insights' },
+    { id: 'cover', label: 'Cover letter' },
+    { id: 'interview', label: 'Interview' },
+    { id: 'improve', label: 'Improve' },
+    { id: 'rewrite', label: 'Rewrite agent' },
+  ];
 
   return (
     <AppShell>
@@ -68,7 +120,14 @@ export default function DashboardPage() {
             <AnalysisWorkspace
               onResult={handleResult}
               onStart={() => setIsAnalyzing(true)}
+              onResumeTextChange={(t) => {
+                setResumeText(t);
+              }}
             />
+
+            {/* Capture job description from workspace via a small side effect:
+                we re-use the last analysis context; for rewrite we also need JD.
+                Simple approach: store from the analyze payload context. */}
 
             {result && (
               <div className="panel" style={{ marginTop: 22 }}>
@@ -76,21 +135,18 @@ export default function DashboardPage() {
                   <div>
                     <h2 className="panel-title">Deep dive</h2>
                     <p className="panel-subtitle">
-                      {result.jobTitle || 'Target role'} · {result.summary?.slice(0, 80)}...
+                      {result.jobTitle || 'Target role'} · {result.summary?.slice(0, 80)}…
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {(['overview', 'cover', 'interview', 'improve'] as const).map((tab) => (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {tabs.map((tab) => (
                       <button
-                        key={tab}
-                        className={activeTab === tab ? 'primary-button' : 'secondary-button'}
-                        onClick={() => setActiveTab(tab)}
+                        key={tab.id}
+                        className={activeTab === tab.id ? 'primary-button' : 'secondary-button'}
+                        onClick={() => setActiveTab(tab.id)}
                         style={{ padding: '8px 12px', fontSize: 11 }}
                       >
-                        {tab === 'overview' && 'Insights'}
-                        {tab === 'cover' && 'Cover letter'}
-                        {tab === 'interview' && 'Interview'}
-                        {tab === 'improve' && 'Improve'}
+                        {tab.label}
                       </button>
                     ))}
                   </div>
@@ -183,6 +239,108 @@ export default function DashboardPage() {
                       ))}
                     </div>
                   )}
+
+                  {activeTab === 'rewrite' && (
+                    <div>
+                      {!rewrite && (
+                        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                          <p style={{ color: 'var(--ink-soft)', marginBottom: 16, fontSize: 14 }}>
+                            Let the rewrite agent produce a stronger, ATS-optimized version of your
+                            resume using the gaps and improvements from this analysis.
+                          </p>
+                          <button
+                            className="primary-button"
+                            onClick={runRewrite}
+                            disabled={isRewriting}
+                          >
+                            {isRewriting ? (
+                              <>
+                                <LoaderCircle size={16} className="spin" /> Rewriting…
+                              </>
+                            ) : (
+                              <>
+                                <Wand2 size={16} /> Generate rewritten resume
+                              </>
+                            )}
+                          </button>
+                          {rewriteError && (
+                            <p style={{ color: 'var(--coral)', marginTop: 12, fontSize: 13 }}>
+                              {rewriteError}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {rewrite && (
+                        <div>
+                          <p className="section-label">What changed</p>
+                          <div className="insight-stack" style={{ marginBottom: 20 }}>
+                            {rewrite.changesSummary.map((c, i) => (
+                              <div className="insight" key={i}>
+                                <CheckCircle2 size={17} />
+                                <div>
+                                  <strong>Change</strong>
+                                  <p>{c}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {rewrite.keywordsAdded.length > 0 && (
+                            <>
+                              <p className="section-label">Keywords woven in</p>
+                              <div className="keyword-list" style={{ marginBottom: 20 }}>
+                                {rewrite.keywordsAdded.map((k) => (
+                                  <span className="keyword" key={k}>
+                                    {k}
+                                  </span>
+                                ))}
+                              </div>
+                            </>
+                          )}
+
+                          <p className="section-label">Rewritten resume</p>
+                          <div
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                              font: '13px/1.7 Arial, sans-serif',
+                              color: 'var(--ink)',
+                              background: '#f6f9f6',
+                              padding: 20,
+                              borderRadius: 12,
+                              maxHeight: 480,
+                              overflow: 'auto',
+                            }}
+                          >
+                            {rewrite.rewrittenResume}
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                            <button
+                              className="secondary-button"
+                              onClick={() =>
+                                navigator.clipboard.writeText(rewrite.rewrittenResume)
+                              }
+                            >
+                              Copy rewritten resume
+                            </button>
+                            <button
+                              className="primary-button"
+                              onClick={runRewrite}
+                              disabled={isRewriting}
+                            >
+                              {isRewriting ? (
+                                <>
+                                  <LoaderCircle size={14} className="spin" /> Regenerating…
+                                </>
+                              ) : (
+                                'Regenerate'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -202,7 +360,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {isAnalyzing && (
+        {(isAnalyzing || isRewriting) && (
           <div
             style={{
               position: 'fixed',
@@ -226,9 +384,13 @@ export default function DashboardPage() {
             >
               <LoaderCircle className="spin" size={22} />
               <div>
-                <strong>NeuroJob is thinking...</strong>
+                <strong>
+                  {isRewriting ? 'Rewrite agent is working…' : 'NeuroJob is thinking…'}
+                </strong>
                 <p style={{ margin: '4px 0 0', color: 'var(--ink-soft)', fontSize: 13 }}>
-                  Running multi-signal analysis with Gemini
+                  {isRewriting
+                    ? 'Optimizing narrative and keywords with Gemini'
+                    : 'Running multi-signal analysis with Gemini'}
                 </p>
               </div>
             </div>

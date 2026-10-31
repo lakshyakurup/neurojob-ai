@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { FileText, LoaderCircle, Sparkles, Target } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { FileText, LoaderCircle, Sparkles, Target, Upload } from 'lucide-react';
 import type { AnalysisResponse } from '../../types';
 
 interface Props {
   onResult: (result: AnalysisResponse) => void;
   onStart?: () => void;
+  onResumeTextChange?: (text: string) => void;
 }
 
-export default function AnalysisWorkspace({ onResult, onStart }: Props) {
+export default function AnalysisWorkspace({ onResult, onStart, onResumeTextChange }: Props) {
   const [resume, setResume] = useState(
     `Product designer with 6+ years building B2B SaaS products. Led discovery, prototyping, and launch for a workflow platform used by 40k teams. Partnered with engineering and growth to improve activation by 31%. Designed end-to-end experiences across web and mobile. Mentored junior designers and ran design critiques.`
   );
@@ -19,7 +20,47 @@ export default function AnalysisWorkspace({ onResult, onStart }: Props) {
   const [jobTitle, setJobTitle] = useState('Senior Product Designer');
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [parseInfo, setParseInfo] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function updateResume(text: string) {
+    setResume(text);
+    onResumeTextChange?.(text);
+  }
+
+  async function handlePdfUpload(file: File) {
+    setParsing(true);
+    setError(null);
+    setParseInfo(null);
+
+    try {
+      const form = new FormData();
+      form.append('file', file);
+
+      const res = await fetch('/api/parse-resume', {
+        method: 'POST',
+        body: form,
+      });
+
+      const payload = await res.json();
+
+      if (!res.ok) {
+        throw new Error(payload.error || 'Failed to parse PDF');
+      }
+
+      updateResume(payload.data.text);
+      setParseInfo(
+        `Extracted ${payload.data.charCount.toLocaleString()} characters from ${payload.data.pages} page(s)`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'PDF parse failed');
+    } finally {
+      setParsing(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
 
   async function analyze() {
     if (!resume.trim() || !job.trim()) {
@@ -69,14 +110,55 @@ export default function AnalysisWorkspace({ onResult, onStart }: Props) {
             <h2 className="panel-title">
               <FileText size={16} /> Your story
             </h2>
-            <p className="panel-subtitle">Paste a resume or a profile draft</p>
+            <p className="panel-subtitle">Paste text or upload a PDF resume</p>
           </div>
-          <span className="stat-foot">{resume.length} chars</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="stat-foot">{resume.length} chars</span>
+            <button
+              type="button"
+              className="secondary-button"
+              style={{ padding: '7px 11px', fontSize: 11 }}
+              onClick={() => fileRef.current?.click()}
+              disabled={parsing}
+            >
+              {parsing ? (
+                <>
+                  <LoaderCircle size={13} className="spin" /> Parsing…
+                </>
+              ) : (
+                <>
+                  <Upload size={13} /> PDF
+                </>
+              )}
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handlePdfUpload(f);
+              }}
+            />
+          </div>
         </div>
+        {parseInfo && (
+          <p
+            style={{
+              margin: 0,
+              padding: '0 23px 8px',
+              color: 'var(--mint-strong)',
+              font: '11px Arial, sans-serif',
+            }}
+          >
+            {parseInfo}
+          </p>
+        )}
         <textarea
           value={resume}
-          onChange={(e) => setResume(e.target.value)}
-          placeholder="Paste your resume or LinkedIn about section here..."
+          onChange={(e) => updateResume(e.target.value)}
+          placeholder="Paste your resume or LinkedIn about section here…"
         />
       </div>
 
@@ -119,7 +201,7 @@ export default function AnalysisWorkspace({ onResult, onStart }: Props) {
         <textarea
           value={job}
           onChange={(e) => setJob(e.target.value)}
-          placeholder="Paste the full job description here..."
+          placeholder="Paste the full job description here…"
         />
       </div>
 
@@ -127,10 +209,10 @@ export default function AnalysisWorkspace({ onResult, onStart }: Props) {
         {error && (
           <p style={{ color: 'var(--coral)', marginBottom: 12, fontSize: 13 }}>{error}</p>
         )}
-        <button className="primary-button" onClick={analyze} disabled={loading}>
+        <button className="primary-button" onClick={analyze} disabled={loading || parsing}>
           {loading ? (
             <>
-              <LoaderCircle size={16} className="spin" /> Reading your signal...
+              <LoaderCircle size={16} className="spin" /> Reading your signal…
             </>
           ) : (
             <>
