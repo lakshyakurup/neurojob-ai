@@ -120,14 +120,9 @@ export default function DashboardPage() {
             <AnalysisWorkspace
               onResult={handleResult}
               onStart={() => setIsAnalyzing(true)}
-              onResumeTextChange={(t) => {
-                setResumeText(t);
-              }}
+              onResumeTextChange={setResumeText}
+              onJobDescriptionChange={setJobDescription}
             />
-
-            {/* Capture job description from workspace via a small side effect:
-                we re-use the last analysis context; for rewrite we also need JD.
-                Simple approach: store from the analyze payload context. */}
 
             {result && (
               <div className="panel" style={{ marginTop: 22 }}>
