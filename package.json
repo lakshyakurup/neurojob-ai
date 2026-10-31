@@ -1,8 +1,8 @@
 {
   "name": "@lakshyakurup/neurojob-ai",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": false,
-  "description": "AI-powered career intelligence platform — resume fit scoring, cover letters, interview prep",
+  "description": "AI-powered career intelligence platform — resume fit scoring, cover letters, interview prep, PDF parsing & rewrite agent",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,16 +13,20 @@
   "dependencies": {
     "@clerk/nextjs": "^6.12.0",
     "@google/genai": "^1.0.0",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.0",
     "lucide-react": "^0.475.0",
     "next": "^15.2.0",
+    "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
+    "@types/pdf-parse": "^1.1.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.8.2"
@@ -42,7 +46,9 @@
     "nextjs",
     "hackathon",
     "job-search",
-    "ats"
+    "ats",
+    "supabase",
+    "pdf"
   ],
   "license": "MIT"
 }

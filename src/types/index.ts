@@ -44,3 +44,18 @@ export interface Application {
   appliedAt?: string;
   notes?: string;
 }
+
+export interface RewriteRequest {
+  resumeText: string;
+  jobDescription: string;
+  missingKeywords?: string[];
+  recommendedImprovements?: string[];
+  jobTitle?: string;
+  company?: string;
+}
+
+export interface RewriteResponse {
+  rewrittenResume: string;
+  changesSummary: string[];
+  keywordsAdded: string[];
+}
